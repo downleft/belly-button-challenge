@@ -60,12 +60,33 @@ function optionChanged() {
     Plotly.newPlot("bar", hbarInfo, layout1);
 
     // Set up Bubble Chart parameters
+    let textbox = []
+    for (let j = 0; j < samples[dropdownMenu]["otu_ids"].length; j++) {
+        textbox.push("OTU ID: " + String(samples[dropdownMenu]["otu_ids"][j]));
+    };
     let trace2 = {
         x: samples[dropdownMenu]["otu_ids"],
         y: samples[dropdownMenu]["sample_values"],
+        hovertemplate: textbox,
+        // text: textbox,
         mode: "markers",
-        marker: {size: samples[dropdownMenu]["sample_values"]},
-        };
+        marker: {
+            colorscale: [
+                [0.000, "rgb(68, 1, 84)"],
+                [0.111, "rgb(72, 40, 120)"],
+                [0.222, "rgb(62, 74, 137)"],
+                [0.333, "rgb(49, 104, 142)"],
+                [0.444, "rgb(38, 130, 142)"],
+                [0.556, "rgb(31, 158, 137)"],
+                [0.667, "rgb(53, 183, 121)"],
+                [0.778, "rgb(109, 205, 89)"],
+                [0.889, "rgb(180, 222, 44)"],
+                [1.000, "rgb(253, 231, 37)"]
+              ],
+            size: samples[dropdownMenu]["sample_values"],
+            color: samples[dropdownMenu]["otu_ids"],
+        },
+    };
 
     let bubbleInfo = [trace2];
 
@@ -76,7 +97,9 @@ function optionChanged() {
 
     // Render Bubble Chart to the div tag with id "bubble"
     Plotly.newPlot("bubble", bubbleInfo, layout2);
-//     // d3.select(".sample-metadata").append(metadata[dropdownMenu])
-};
 
-//console.log(belly_button_data)
+    // Display Demographic Info
+    // Code pulled from https://stackoverflow.com/questions/71697825/how-can-i-pretty-print-keys-and-values-of-a-javascript-object-on-web-page
+    const str = Object.entries(metadata[dropdownMenu]).map(([key, value]) => `<dd>${key}: ${value}</dd>`).join('');
+    document.getElementById("sample-metadata").innerHTML = str
+};
