@@ -2,9 +2,9 @@
 const url = "https://static.bc-edx.com/data/dl-1-2/m14/lms/starter/samples.json";
 
 // Set up initial variables
-let names = []
-let metadata = []
-let samples = []
+let names = [];
+let metadata = [];
+let samples = [];
 
 // Fetch the JSON data
 d3.json(url).then(function(data) {
@@ -15,10 +15,10 @@ d3.json(url).then(function(data) {
     // Populate dropdown menu
     for (let j = 0; j < names.length; j++) {
         d3.select("select").append("option").attr("value", j).text(names[j]);
-      }
+      };
 
     // Establish default graph
-    optionChanged()
+    optionChanged();
 });
 
 // Trigger New Graphs when Dropdown Menu changed
@@ -29,23 +29,27 @@ function optionChanged() {
 
     // Determine value chosen from Dropdown Menu
     let dropdownMenu = d3.select("#selDataset").property("value");
-    let labels = [];
+    let otuIDs = [];
     let values = [];
+    let otuLabels = []
 
     // Limit to top 10 for Horizontal Bar Chart
     for (let k = 0; k < 10; k++) {
         if (samples[dropdownMenu]["otu_ids"][k]) {
-            labels.push("OTU " + String(samples[dropdownMenu]["otu_ids"][k]));
+            otuIDs.push("OTU " + String(samples[dropdownMenu]["otu_ids"][k]));
             values.push(samples[dropdownMenu]["sample_values"][k]);
+            otuLabels.push(samples[dropdownMenu]["otu_labels"][k])
         };
     };
     
     // Set up Horizontal Bar Chart parameters
     let trace1 = {
         x: values,
-        y: labels,
+        y: otuIDs,
         type: "bar",
         orientation: "h",
+        text: otuLabels,
+        
         // Organize in descending order reference: https://community.plotly.com/t/horizontal-bar-automatically-order-by-numerical-value/7183
         transforms: [{
             type: "sort",
@@ -57,25 +61,20 @@ function optionChanged() {
     let hbarInfo = [trace1];
 
     let layout1 = {
+        title: "Top 10 Belly Button Microbes (OTUs)",
+        xaxis: {title: "Sample Values"},
         height: 600,
-        width: 800
+        width: 600
         };
 
     // Render Horizontal Bar Chart to the div tag with id "bar"
     Plotly.newPlot("bar", hbarInfo, layout1);
 
     // Set up Bubble Chart parameters
-    // Set up Hovertext element - textbox
-    let textbox = []
-    for (let j = 0; j < samples[dropdownMenu]["otu_ids"].length; j++) {
-        textbox.push("OTU ID: " + String(samples[dropdownMenu]["otu_ids"][j]));
-    };
-
-    // Set up remianing Bubble Chart parameters
     let trace2 = {
         x: samples[dropdownMenu]["otu_ids"],
         y: samples[dropdownMenu]["sample_values"],
-        hovertemplate: textbox,
+        text: samples[dropdownMenu]["otu_labels"],
         mode: "markers",
         marker: {
             // Colorscale setup from following link: https://stackoverflow.com/questions/67635512/plotly-colorscale-in-scatter-data-plot
@@ -99,6 +98,9 @@ function optionChanged() {
     let bubbleInfo = [trace2];
 
     let layout2 = {
+        title: "Relative Sample Size by OTU ID",
+        xaxis: {title: "OTU ID"},
+        yaxis: {title: "Sample Values"},
         height: 600,
         width: 1200
         };
@@ -111,13 +113,14 @@ function optionChanged() {
     const str = Object.entries(metadata[dropdownMenu]).map(([key, value]) => `<dd>${key}: ${value}</dd>`).join('');
     document.getElementById("sample-metadata").innerHTML = str
 
+    // Plot gauge for Weekly Wash Frequency
     var gaugeInfo = [
         {
           domain: { x: [0, 1], y: [0, 1] },
           value: metadata[dropdownMenu]["wfreq"],
-          title: { text: "Belly Button Weekly Wash Frequency" },
+          title: { text: "Belly Button Washing Frequency (Scrubs/Week)" },
           type: "indicator",
-          mode: "gauge+needle",
+          mode: "gauge+number",
           gauge: {
             axis: { range: [null, 9] },
             steps: [
@@ -132,10 +135,18 @@ function optionChanged() {
               { range: [7, 8], color: "#7CB342" },
               { range: [8, 9], color: "#689F38" },
             ],
+            bar: {
+                color: "blue",
+                thickness: 0.25
+            }
           }
         }
       ];
-      
-      var layout3 = { width: 600, height: 450, margin: { t: 0, b: 0 } };
-      Plotly.newPlot('gauge', gaugeInfo, layout3);
+
+    var layout3 = { 
+        width: 600, 
+        height: 450, 
+        margin: { t: 0, b: 0 },
+        };
+    Plotly.newPlot('gauge', gaugeInfo, layout3);
 };
